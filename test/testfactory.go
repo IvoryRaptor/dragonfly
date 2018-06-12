@@ -11,8 +11,11 @@ func (f * ServiceFactory)GetName() string{
 	return "test"
 }
 
-func (f * ServiceFactory)Create(kernel dragonfly.IKernel,config map[interface {}]interface{}) dragonfly.IService {
+func (f * ServiceFactory)Create(kernel dragonfly.IKernel,config map[interface {}]interface{}) (dragonfly.IService,error) {
 	r := TestService{}
-	r.Config(kernel, config)
-	return &r
+	err := r.Config(kernel, config)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
 }

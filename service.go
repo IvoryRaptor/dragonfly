@@ -10,7 +10,7 @@ type IService interface {
 
 type IServiceFactory interface {
 	GetName() string
-	Create(kernel IKernel,config map[interface {}]interface{}) IService
+	Create(kernel IKernel,config map[interface {}]interface{}) (IService,error)
 }
 
 func Builder(kernel IKernel, factories []IServiceFactory)error {
@@ -19,8 +19,8 @@ func Builder(kernel IKernel, factories []IServiceFactory)error {
 		return err
 	}
 	for _, factory := range factories {
-		println("123")
-		service := factory.Create(kernel, config[factory.GetName()].(map[interface {}]interface {}))
+		var service IService
+		service,err = factory.Create(kernel, config[factory.GetName()].(map[interface {}]interface {}))
 		kernel.AddService(service)
 	}
 	return nil
