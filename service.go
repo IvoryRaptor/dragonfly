@@ -7,3 +7,7 @@ type IService interface {
 	Start() error
 	Stop()
 }
+
+type IServiceFactory interface {
+	Create(config interface{}) IService
+}
