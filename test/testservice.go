@@ -6,8 +6,16 @@ import (
 	"log"
 )
 
+type TestKernel struct {
+	dragonfly.Kernel
+}
+
+func (k * TestKernel)T() {
+	println(123)
+}
+
 type TestService struct {
-	kernel dragonfly.IKernel
+	kernel *TestKernel
 	name string
 	run bool
 }
@@ -17,7 +25,7 @@ func (t * TestService)GetName()string{
 }
 
 func (t * TestService)Config(kernel dragonfly.IKernel, config map[interface {}]interface{}) error {
-	t.kernel = kernel
+	t.kernel = kernel.(*TestKernel)
 	t.name = config["name"].(string)
 	return nil
 }
@@ -27,6 +35,7 @@ func (t * TestService)Start() error {
 	go func() {
 		for t.run  {
 			println(t.name)
+			t.kernel.T()
 			time.Sleep(time.Second)
 		}
 		t.kernel.RemoveService(t)

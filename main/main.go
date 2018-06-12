@@ -7,9 +7,8 @@ import (
 )
 
 func main() {
-	k := dragonfly.Kernel{}
+	k := test.TestKernel{}
 	k.New("test")
-
 	err := dragonfly.Builder(
 		&k,
 		[]dragonfly.IServiceFactory{&test.ServiceFactory{}})
