@@ -4,14 +4,14 @@ import (
 	"github.com/IvoryRaptor/dragonfly"
 )
 
-type ServiceFactory struct {
+type Factory struct {
 }
 
-func (f * ServiceFactory)GetName() string{
+func (f *Factory)GetName() string{
 	return "test"
 }
 
-func (f * ServiceFactory)Create(kernel dragonfly.IKernel,config map[interface {}]interface{}) (dragonfly.IService,error) {
+func (f *Factory)Create(kernel dragonfly.IKernel,config map[interface {}]interface{}) (dragonfly.IService,error) {
 	r := TestService{}
 	err := r.Config(kernel, config)
 	if err != nil {

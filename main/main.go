@@ -11,7 +11,7 @@ func main() {
 	k.New("test")
 	err := dragonfly.Builder(
 		&k,
-		[]dragonfly.IServiceFactory{&test.ServiceFactory{}})
+		[]dragonfly.IServiceFactory{&test.Factory{}})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
