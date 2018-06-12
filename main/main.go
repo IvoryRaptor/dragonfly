@@ -1,11 +1,24 @@
 package main
 
-import "github.com/IvoryRaptor/dragonfly/test"
+import (
+	"github.com/IvoryRaptor/dragonfly/test"
+	"github.com/IvoryRaptor/dragonfly"
+	"log"
+)
 
 func main() {
-	t :=test.TestKernel{}
-	t.Name = "test"
-	t.Config()
-	t.Start()
-	t.WaitStop()
+	k := dragonfly.Kernel{}
+	k.New("test")
+
+	err := dragonfly.Builder(
+		&k,
+		[]dragonfly.IServiceFactory{&test.ServiceFactory{}})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	err = k.Start()
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	k.WaitStop()
 }

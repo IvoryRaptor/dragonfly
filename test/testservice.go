@@ -6,10 +6,6 @@ import (
 	"log"
 )
 
-type TestConfig struct {
-	Name string `yaml:"name"`
-}
-
 type TestService struct {
 	kernel dragonfly.IKernel
 	name string
@@ -20,9 +16,9 @@ func (t * TestService)GetName()string{
 	return "test"
 }
 
-func (t * TestService)Config(kernel dragonfly.IKernel, config interface{}) error {
+func (t * TestService)Config(kernel dragonfly.IKernel, config map[interface {}]interface{}) error {
 	t.kernel = kernel
-	t.name = config.(TestConfig).Name
+	t.name = config["name"].(string)
 	return nil
 }
 
@@ -39,7 +35,7 @@ func (t * TestService)Start() error {
 }
 
 func (t * TestService)Stop() {
-	log.Printf("Stop Service %s", t.name)
+	log.Printf("Stop [%s] Service", t.name)
 	t.run = false
 }
 

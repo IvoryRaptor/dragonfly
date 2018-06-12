@@ -11,10 +11,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type IKernel interface{
+type IKernel interface {
+	GetConfig() (map[string]interface{}, error)
 	Get(name string) interface{}
-	Set(name string,value interface{})
+	Set(name string, value interface{})
 	RemoveService(service IService)
+	AddService(service IService)
 	GetService(name string) IService
 }
 
@@ -26,16 +28,20 @@ type Kernel struct{
 	parameter map[string]interface{}
 }
 
-func (k * Kernel) InitializeConfig(config interface{}) error {
+func (k * Kernel)New(name string) {
+	k.Name = name
 	k.services = map[string]IService{}
 	k.signalChan = make(chan os.Signal, 1)
+}
 
+func (k * Kernel)GetConfig() (map[string]interface{},error) {
+	config := map[string]interface{}{}
 	data, err := ioutil.ReadFile(fmt.Sprintf("./config/%s/config.yaml", k.Name))
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = yaml.Unmarshal(data, config)
-	return err
+	return config, err
 }
 
 func (k * Kernel) Get(name string) interface{} {
@@ -62,6 +68,7 @@ func (k * Kernel) GetService(name string) IService{
 }
 
 func (k *Kernel)Start() error {
+	log.Printf("%s Start\n", k.Name)
 	for name, service := range k.services {
 		log.Printf("Service [%s] Start\n", name)
 		err := service.Start()
