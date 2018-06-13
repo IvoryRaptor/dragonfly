@@ -31,6 +31,7 @@ type Kernel struct{
 func (k * Kernel)New(name string) {
 	k.Name = name
 	k.services = map[string]IService{}
+	k.parameter = map[string]interface{}{}
 	k.signalChan = make(chan os.Signal, 1)
 }
 
