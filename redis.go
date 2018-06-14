@@ -11,9 +11,11 @@ type Redis struct {
 	Mutex sync.Mutex
 	Conn  redis.Conn
 	url   string
+	kernel IKernel
 }
 
 func (r *Redis) Config(kernel IKernel, config map[interface {}]interface{}) error {
+	r.kernel = kernel
 	r.url = fmt.Sprintf("%s:%d", config["host"], config["port"])
 	return nil
 }
@@ -38,4 +40,5 @@ func (r *Redis) Do(commandName string, args ...interface{}) (interface{}, error)
 
 func (r *Redis) Stop(){
 	r.Conn.Close()
+	r.kernel.RemoveService(r)
 }
