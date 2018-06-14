@@ -24,10 +24,10 @@ func (m *Mongo) Config(kernel IKernel, config map[interface {}]interface{}) erro
 }
 
 func (m *Mongo) Start() error{
-	log.Printf("MongoDB Url <%s>", m.url)
+	log.Printf("MongoDB Url %s", m.url)
 	session, err := mgo.DialWithTimeout(m.url, 10*time.Second)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	m.session = session
 	m.session.SetMode(mgo.Monotonic, true)
