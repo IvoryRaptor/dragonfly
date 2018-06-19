@@ -11,10 +11,14 @@ func main() {
 	k.New("test")
 	err := dragonfly.Builder(
 		&k,
-		[]dragonfly.IServiceFactory{&test.Factory{}})
+		[]dragonfly.IServiceFactory{
+			&test.Factory{},
+			&dragonfly.ZookeeperFactory{},
+		})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	k.SetFields()
 	err = k.Start()
 	if err != nil {
 		log.Fatal(err.Error())

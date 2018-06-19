@@ -1,2 +1,7 @@
 test:
   name: aaa
+zookeeper:
+  host: zookeeper.default
+  port: 2181
+  path: /angler
+  level: 2

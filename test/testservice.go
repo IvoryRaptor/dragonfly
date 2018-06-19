@@ -2,49 +2,60 @@ package test
 
 import (
 	"github.com/IvoryRaptor/dragonfly"
-	"time"
 	"log"
+	"time"
 )
 
 type TestKernel struct {
 	dragonfly.Kernel
+	zookeeper *dragonfly.Zookeeper
 }
 
-func (k * TestKernel)T() {
+func (k *TestKernel) T() {
 	println(123)
+}
+
+func (t *TestKernel) SetFields() {
+	t.zookeeper = t.GetService("zookeeper").(*dragonfly.Zookeeper)
 }
 
 type TestService struct {
 	kernel *TestKernel
-	name string
-	run bool
+	name   string
+	run    bool
 }
 
-func (t * TestService)GetName()string{
+func (t *TestService) GetName() string {
 	return "test"
 }
 
-func (t * TestService)Config(kernel dragonfly.IKernel, config map[interface {}]interface{}) error {
+func (t *TestService) Config(kernel dragonfly.IKernel, config map[interface{}]interface{}) error {
 	t.kernel = kernel.(*TestKernel)
 	t.name = config["name"].(string)
 	return nil
 }
 
-func (t * TestService)Start() error {
+func (t *TestService) Start() error {
 	t.run = true
 	go func() {
-		for t.run  {
+		for t.run {
 			println(t.name)
 			t.kernel.T()
-			time.Sleep(time.Second)
+			for k,v :=range t.kernel.zookeeper.GetChildes(){
+				println(k)
+				for _,t:=range v.GetKeys(){
+					print("\t" + t)
+				}
+				println()
+			}
+			time.Sleep(3 * time.Second)
 		}
-		t.kernel.RemoveService(t)
 	}()
 	return nil
 }
 
-func (t * TestService)Stop() {
+func (t *TestService) Stop() {
 	log.Printf("Stop [%s] Service", t.name)
+	t.kernel.RemoveService(t)
 	t.run = false
 }
-
