@@ -27,6 +27,14 @@ type ZkNode struct {
 	childes  sync.Map
 }
 
+func (n *ZkNode) GetChilde(name string) *ZkNode {
+	result,h:= n.childes.Load(name)
+	if h{
+		return result.(*ZkNode)
+	}
+	return nil
+}
+
 func (n *ZkNode) GetChildes() map[string]*ZkNode {
 	result := map[string]*ZkNode{}
 	n.childes.Range(func(k, v interface{}) bool {
