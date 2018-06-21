@@ -9,16 +9,16 @@ import (
 )
 
 type Kafka struct {
-	kernel   IArrive
+	kernel IArrive
 	producer *kafka.Producer
 	consumer *kafka.Consumer
 }
 
-func (k * Kafka)Publish(topic string,actor []byte,payload []byte) error {
+func (k * Kafka)KafkaPublish(topic string,partition int32, actor []byte,payload []byte) error {
 	deliveryChan := make(chan kafka.Event)
 	err := k.producer.Produce(
 		&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: partition},
 			Key:            actor,
 			Value:          payload,
 		},
@@ -38,7 +38,7 @@ func (k * Kafka)Publish(topic string,actor []byte,payload []byte) error {
 	return nil
 }
 
-func (k * Kafka)Config(kernel dragonfly.IKernel, config map[interface{}]interface{}) error{
+func (k * Kafka)KafkaConfig(kernel dragonfly.IKernel, config map[interface{}]interface{}) error{
 	k.kernel = kernel.(IArrive)
 	var err error = nil
 	host := fmt.Sprintf("%s:%d",config["host"],config["port"])
@@ -46,7 +46,6 @@ func (k * Kafka)Config(kernel dragonfly.IKernel, config map[interface{}]interfac
 	if err != nil {
 		return err
 	}
-
 	t := kafka.ConfigMap{
 		"bootstrap.servers":    host,
 		"group.id":             "PostOffice",

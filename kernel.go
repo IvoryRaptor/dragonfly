@@ -15,7 +15,7 @@ type IKernel interface {
 	GetConfig() (map[string]interface{}, error)
 	Get(name string) interface{}
 	Set(name string, value interface{})
-	RemoveService(service IService)
+	RemoveService(service interface{})
 	AddService(name string, service IService)
 	GetService(name string) IService
 }
@@ -59,7 +59,7 @@ func (k * Kernel) AddService(name string, service IService) {
 	k.wait.Add(1)
 }
 
-func (k * Kernel) RemoveService(service IService) {
+func (k * Kernel) RemoveService(service interface {}) {
 	var name string = ""
 	for n, s := range k.services {
 		if service == s {
