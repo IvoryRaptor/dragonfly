@@ -25,11 +25,12 @@ type ZkNode struct {
 	stopChan chan bool
 	level    int
 	childes  sync.Map
+	change   *chan bool
 }
 
 func (n *ZkNode) GetChilde(name string) *ZkNode {
-	result,h:= n.childes.Load(name)
-	if h{
+	result, h := n.childes.Load(name)
+	if h {
 		return result.(*ZkNode)
 	}
 	return nil
@@ -45,16 +46,17 @@ func (n *ZkNode) GetChildes() map[string]*ZkNode {
 }
 
 func (n *ZkNode) GetKeys() []string {
-	result := []string{}
+	result := make([]string, 0)
 	n.childes.Range(func(k, v interface{}) bool {
-		result = append(result,k.(string))
+		result = append(result, k.(string))
 		return true
 	})
 	return result
 }
 
-func (n *ZkNode) Watch(conn *zk.Conn, path string, level int) {
+func (n *ZkNode) Watch(conn *zk.Conn, change *chan bool, path string, level int) {
 	n.childes = sync.Map{}
+	n.change = change
 	go func() {
 		for {
 			keys, _, childCh, _ := conn.ChildrenW(path)
@@ -67,7 +69,7 @@ func (n *ZkNode) Watch(conn *zk.Conn, path string, level int) {
 				} else {
 					iotnn := &ZkNode{}
 					if level > 0 {
-						iotnn.Watch(conn, path+"/"+node, level-1)
+						iotnn.Watch(conn, change, path+"/"+node, level-1)
 					}
 					newMap.Store(node, iotnn)
 				}
@@ -101,6 +103,7 @@ type Zookeeper struct {
 	conn   *zk.Conn
 	level  int
 	path   string
+	//Change chan bool
 }
 
 func (z *Zookeeper) GetConn() *zk.Conn {
@@ -120,12 +123,13 @@ func (z *Zookeeper) Create(path string, data []byte, flags int32, acl []zk.ACL) 
 }
 
 func (z *Zookeeper) Start() error {
+	change := make(chan bool)
 	var err error
 	z.conn, _, err = zk.Connect([]string{z.url}, time.Second*10)
 	if err != nil {
 		return err
 	}
-	z.Watch(z.conn, z.path, z.level)
+	z.Watch(z.conn, &change, z.path, z.level)
 	return nil
 }
 

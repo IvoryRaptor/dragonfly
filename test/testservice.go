@@ -12,7 +12,7 @@ type TestKernel struct {
 }
 
 func (k *TestKernel) T() {
-	println(123)
+
 }
 
 func (t *TestKernel) SetFields() {
@@ -39,7 +39,6 @@ func (t *TestService) Start() error {
 	t.run = true
 	go func() {
 		for t.run {
-			println(t.name)
 			t.kernel.T()
 			for k,v :=range t.kernel.zookeeper.GetChildes(){
 				println(k)
