@@ -28,7 +28,7 @@ type ZkNode struct {
 	change   *chan bool
 }
 
-func (n *ZkNode) GetChilde(name string) *ZkNode {
+func (n *ZkNode) GetChild(name string) *ZkNode {
 	result, h := n.childes.Load(name)
 	if h {
 		return result.(*ZkNode)
@@ -103,7 +103,6 @@ type Zookeeper struct {
 	conn   *zk.Conn
 	level  int
 	path   string
-	//Change chan bool
 }
 
 func (z *Zookeeper) GetConn() *zk.Conn {
