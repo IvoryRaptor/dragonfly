@@ -33,7 +33,7 @@ func (r *Redis) Start() error {
 
 func (r *Redis) Do(commandName string, args ...interface{}) (interface{}, error) {
 	r.Mutex.Lock()
-	reply, err := r.Conn.Do(commandName, args)
+	reply, err := r.Conn.Do(commandName, args...)
 	r.Mutex.Unlock()
 	return reply, err
 }

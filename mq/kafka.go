@@ -69,20 +69,12 @@ func (k * Kafka)Start() error {
 	}
 	go func() {
 		for true {
-			ev,err := k.consumer.ReadMessage(-1)
+			msg,err := k.consumer.ReadMessage(-1)
 			if err != nil {
-				continue
+				fmt.Printf("Kafka %s\n", err.Error())
+				break
 			}
-			switch e := ev.(type) {
-			case *kafka.Message:
-				k.kernel.Arrive(e.Value)
-			case kafka.PartitionEOF:
-				fmt.Printf("%% Reached %v\n", e)
-			case kafka.Error:
-				fmt.Fprintf(os.Stderr, "%% Error: %v\n", e)
-			default:
-				fmt.Printf("Ignored %v\n", e)
-			}
+			k.kernel.Arrive(msg.Value)
 		}
 	}()
 	//mq.consumer.Close()
