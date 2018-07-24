@@ -9,12 +9,13 @@ import (
 )
 
 type Kafka struct {
-	kernel IArrive
+	kernel   IArrive
 	producer *kafka.Producer
 	consumer *kafka.Consumer
+	Topic    string
 }
 
-func (k * Kafka)KafkaPublish(topic string,partition int32, actor []byte,payload []byte) error {
+func (k *Kafka) KafkaPublish(topic string, partition int32, actor []byte, payload []byte) error {
 	deliveryChan := make(chan kafka.Event)
 	err := k.producer.Produce(
 		&kafka.Message{
@@ -38,10 +39,10 @@ func (k * Kafka)KafkaPublish(topic string,partition int32, actor []byte,payload 
 	return nil
 }
 
-func (k * Kafka)KafkaConfig(kernel dragonfly.IKernel, config map[interface{}]interface{}) error{
+func (k *Kafka) KafkaConfig(kernel dragonfly.IKernel, config map[interface{}]interface{}) error {
 	k.kernel = kernel.(IArrive)
 	var err error = nil
-	host := fmt.Sprintf("%s:%d",config["host"],config["port"])
+	host := fmt.Sprintf("%s:%d", config["host"], config["port"])
 	k.producer, err = kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": host})
 	if err != nil {
 		return err
@@ -59,9 +60,9 @@ func (k * Kafka)KafkaConfig(kernel dragonfly.IKernel, config map[interface{}]int
 	return nil
 }
 
-func (k * Kafka)Start() error {
-	log.Printf("mq start %s_%s",k.kernel.Get("matrix"), k.kernel.Get("angler"))
-	err := k.consumer.SubscribeTopics([]string{fmt.Sprintf("%s_%s", k.kernel.Get("matrix"), k.kernel.Get("angler"))}, nil)
+func (k *Kafka) Start() error {
+	log.Printf("mq start %s", k.Topic)
+	err := k.consumer.SubscribeTopics([]string{k.Topic}, nil)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create consumer: %s\n", err)
@@ -69,7 +70,7 @@ func (k * Kafka)Start() error {
 	}
 	go func() {
 		for true {
-			msg,err := k.consumer.ReadMessage(-1)
+			msg, err := k.consumer.ReadMessage(-1)
 			if err != nil {
 				fmt.Printf("Kafka %s\n", err.Error())
 				break
@@ -81,6 +82,6 @@ func (k * Kafka)Start() error {
 	return nil
 }
 
-func (k * Kafka)Stop(){
+func (k *Kafka) Stop() {
 	k.kernel.RemoveService(k)
 }
