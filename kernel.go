@@ -1,14 +1,14 @@
 package dragonfly
 
 import (
-	"sync"
-	"log"
-	"os"
-	"syscall"
-	"os/signal"
-	"io/ioutil"
 	"fmt"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
 
 type IKernel interface {
@@ -20,22 +20,22 @@ type IKernel interface {
 	GetService(name string) IService
 }
 
-type Kernel struct{
-	Name string
-	wait sync.WaitGroup
-	services map[string]IService
+type Kernel struct {
+	Name       string
+	wait       sync.WaitGroup
+	services   map[string]IService
 	signalChan chan os.Signal
-	parameter map[string]interface{}
+	parameter  map[string]interface{}
 }
 
-func (k * Kernel)New(name string) {
+func (k *Kernel) New(name string) {
 	k.Name = name
 	k.services = map[string]IService{}
 	k.parameter = map[string]interface{}{}
 	k.signalChan = make(chan os.Signal, 1)
 }
 
-func (k * Kernel)GetConfig() (map[string]interface{},error) {
+func (k *Kernel) GetConfig() (map[string]interface{}, error) {
 	config := map[string]interface{}{}
 	data, err := ioutil.ReadFile(fmt.Sprintf("./config/%s/config.yaml", k.Name))
 	if err != nil {
@@ -45,21 +45,20 @@ func (k * Kernel)GetConfig() (map[string]interface{},error) {
 	return config, err
 }
 
-func (k * Kernel) Get(name string) interface{} {
+func (k *Kernel) Get(name string) interface{} {
 	return k.parameter[name]
 }
 
-
-func (k * Kernel) Set(name string,value interface{}){
+func (k *Kernel) Set(name string, value interface{}) {
 	k.parameter[name] = value
 }
 
-func (k * Kernel) AddService(name string, service IService) {
+func (k *Kernel) AddService(name string, service IService) {
 	k.services[name] = service
 	k.wait.Add(1)
 }
 
-func (k * Kernel) RemoveService(service interface {}) {
+func (k *Kernel) RemoveService(service interface{}) {
 	var name string = ""
 	for n, s := range k.services {
 		if service == s {
@@ -71,11 +70,11 @@ func (k * Kernel) RemoveService(service interface {}) {
 	k.wait.Done()
 }
 
-func (k * Kernel) GetService(name string) IService{
+func (k *Kernel) GetService(name string) IService {
 	return k.services[name]
 }
 
-func (k *Kernel)Start() error {
+func (k *Kernel) Start() error {
 	log.Printf("%s Start\n", k.Name)
 	for name, service := range k.services {
 		log.Printf("Service [%s] Start\n", name)
@@ -87,11 +86,11 @@ func (k *Kernel)Start() error {
 	return nil
 }
 
-func (k *Kernel)Stop() {
+func (k *Kernel) Stop() {
 	k.signalChan <- syscall.SIGINT
 }
 
-func (k *Kernel)WaitStop() {
+func (k *Kernel) WaitStop() {
 	signal.Notify(k.signalChan, syscall.SIGINT, syscall.SIGTERM)
 	<-k.signalChan
 	for name, service := range k.services {

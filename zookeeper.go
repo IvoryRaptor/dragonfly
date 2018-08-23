@@ -1,8 +1,8 @@
 package dragonfly
 
 import (
-	"github.com/samuel/go-zookeeper/zk"
 	"fmt"
+	"github.com/samuel/go-zookeeper/zk"
 	"sync"
 	"time"
 )
@@ -22,6 +22,7 @@ func (f *ZookeeperFactory) Create(kernel IKernel, config map[interface{}]interfa
 
 type ZkNode struct {
 	path     string
+	value    string
 	stopChan chan bool
 	level    int
 	childes  sync.Map
@@ -45,6 +46,9 @@ func (n *ZkNode) GetChildes() map[string]*ZkNode {
 	return result
 }
 
+func (n *ZkNode) GetNodeValue() string {
+	return n.value
+}
 func (n *ZkNode) GetKeys() []string {
 	result := make([]string, 0)
 	n.childes.Range(func(k, v interface{}) bool {
@@ -57,17 +61,24 @@ func (n *ZkNode) GetKeys() []string {
 func (n *ZkNode) Watch(conn *zk.Conn, change *chan bool, path string, level int) {
 	n.childes = sync.Map{}
 	n.change = change
+	n.path = path
 	go func() {
 		for {
 			keys, _, childCh, _ := conn.ChildrenW(path)
 			newMap := sync.Map{}
 			for _, node := range keys {
+				var value string = ""
+				url := n.path + "/" + node
+				if data, _, ok := conn.Get(url); ok == nil {
+					value = string(data[:])
+				}
 				iotnn, ok := n.childes.Load(node)
 				if ok {
 					newMap.Store(node, iotnn)
 					n.childes.Delete(node)
 				} else {
 					iotnn := &ZkNode{}
+					iotnn.value = value
 					if level > 0 {
 						iotnn.Watch(conn, change, path+"/"+node, level-1)
 					}
@@ -117,9 +128,9 @@ func (z *Zookeeper) Config(kernel IKernel, config map[interface{}]interface{}) e
 	return nil
 }
 
-func (z *Zookeeper) Create(path string, data []byte, flags int32, acl []zk.ACL) (string, error) {
-	return z.conn.Create(path, data, flags, acl)
-}
+//func (z *Zookeeper) Create(path string, data []byte, flags int32, acl []zk.ACL) (string, error) {
+//	return z.conn.Create(path, data, flags, acl)
+//}
 
 func (z *Zookeeper) Start() error {
 	change := make(chan bool)

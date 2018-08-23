@@ -1,20 +1,20 @@
 package dragonfly
 
 import (
-	"sync"
-	"github.com/garyburd/redigo/redis"
 	"fmt"
+	"github.com/garyburd/redigo/redis"
 	"log"
+	"sync"
 )
 
 type Redis struct {
-	Mutex sync.Mutex
-	Conn  redis.Conn
-	url   string
+	Mutex  sync.Mutex
+	Conn   redis.Conn
+	url    string
 	kernel IKernel
 }
 
-func (r *Redis) Config(kernel IKernel, config map[interface {}]interface{}) error {
+func (r *Redis) Config(kernel IKernel, config map[interface{}]interface{}) error {
 	r.kernel = kernel
 	r.url = fmt.Sprintf("%s:%d", config["host"], config["port"])
 	return nil
@@ -22,7 +22,7 @@ func (r *Redis) Config(kernel IKernel, config map[interface {}]interface{}) erro
 
 func (r *Redis) Start() error {
 	r.Mutex = sync.Mutex{}
-	log.Printf("Redis %s",r.url)
+	log.Printf("Redis %s", r.url)
 	c, err := redis.Dial("tcp", r.url)
 	if err != nil {
 		return err
@@ -38,21 +38,22 @@ func (r *Redis) Do(commandName string, args ...interface{}) (interface{}, error)
 	return reply, err
 }
 
-func (r *Redis) Stop(){
+func (r *Redis) Stop() {
 	r.Conn.Close()
 	r.kernel.RemoveService(r)
 }
 
-
 type RedisFactory struct {
 }
 
-func (f *RedisFactory)GetName() string{
+func (f *RedisFactory) GetName() string {
 	return "redis"
 }
 
-func (f *RedisFactory)Create(kernel IKernel,config map[interface {}]interface{}) (IService,error) {
+func (f *RedisFactory) Create(kernel IKernel, config map[interface{}]interface{}) (IService, error) {
 	result := Redis{}
 	result.Config(kernel, config)
 	return &result, nil
 }
+
+var Singleton = RedisFactory{}
