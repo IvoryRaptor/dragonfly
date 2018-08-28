@@ -26,10 +26,12 @@ type Kernel struct {
 	services   map[string]IService
 	signalChan chan os.Signal
 	parameter  map[string]interface{}
+	setFields  func()
 }
 
-func (k *Kernel) New(name string) {
+func (k *Kernel) New(name string, setFields func()) {
 	k.Name = name
+	k.setFields = setFields
 	k.services = map[string]IService{}
 	k.parameter = map[string]interface{}{}
 	k.signalChan = make(chan os.Signal, 1)
@@ -76,6 +78,7 @@ func (k *Kernel) GetService(name string) IService {
 
 func (k *Kernel) Start() error {
 	log.Printf("%s Start\n", k.Name)
+	k.setFields()
 	for name, service := range k.services {
 		log.Printf("Service [%s] Start\n", name)
 		err := service.Start()
