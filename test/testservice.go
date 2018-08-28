@@ -11,12 +11,19 @@ type TestKernel struct {
 	zookeeper *dragonfly.Zookeeper
 }
 
-func (k *TestKernel) T() {
+func (t *TestKernel) T() {
 
 }
-
-func (t *TestKernel) SetFields() {
+func (t *TestKernel) New() error {
+	t.NewKernel("test")
+	err := dragonfly.Builder(
+		t,
+		[]dragonfly.IServiceFactory{
+			&Factory{},
+			&dragonfly.ZookeeperFactory{},
+		})
 	t.zookeeper = t.GetService("zookeeper").(*dragonfly.Zookeeper)
+	return err
 }
 
 type TestService struct {
@@ -40,9 +47,9 @@ func (t *TestService) Start() error {
 	go func() {
 		for t.run {
 			t.kernel.T()
-			for k,v :=range t.kernel.zookeeper.GetChildes(){
+			for k, v := range t.kernel.zookeeper.GetChildes() {
 				println(k)
-				for _,t:=range v.GetKeys(){
+				for _, t := range v.GetKeys() {
 					print("\t" + t)
 				}
 				println()
